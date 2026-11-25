@@ -23,5 +23,8 @@ export function useIncidents() {
 
   const setAnalysis = useCallback((id: string, analysis: AnalysisReport) => patch(id, { analysis }), [patch]);
 
-  return { incidents, updateRemarks, toggleSave, setAnalysis };
+  /** Adds an incident to the top of the log (used by Live Detection). */
+  const addIncident = useCallback((f: FootageFolder) => setIncidents((prev) => [f, ...prev]), []);
+
+  return { incidents, updateRemarks, toggleSave, setAnalysis, addIncident };
 }

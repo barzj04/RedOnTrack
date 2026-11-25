@@ -57,3 +57,16 @@ describe('seed incidents', () => {
     expect(filterIncidents(seed, null, 'day')).toHaveLength(seed.length);
   });
 });
+
+describe('liveIncident', () => {
+  it('builds an incident folder from a Live Detection event', async () => {
+    const { liveIncident } = await import('../services/incidentService');
+    const f = liveIncident({ severity: 'high', message: 'Person #1 entered the track.', dwell: 1.25 }, { id: 'CAM-02', name: 'Platform 2' }, new Date(2026, 10, 24, 14, 5));
+    expect(f.date).toBe('24/11/2026');
+    expect(f.time).toBe('14:05');
+    expect(f.platform).toBe('Platform 2');
+    expect(f.cameras).toEqual(['CAM-02']);
+    expect(f.remarks).toContain('HIGH');
+    expect(f.id.startsWith('L-')).toBe(true);
+  });
+});

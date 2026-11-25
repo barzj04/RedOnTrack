@@ -117,6 +117,7 @@ const Dashboard: React.FC = () => {
 
         {/* Navigation Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full max-w-4xl sm:px-4">
+          <NavButton href="/live" title="Live Detection" description="Run the model on any video or webcam" icon={ArrowIcon} />
           <NavButton href="/analysis" title="Incident Analysis" description="Trends, logs & AI analysis" icon={ArrowIcon} />
           <NavButton
             href="/catalog"

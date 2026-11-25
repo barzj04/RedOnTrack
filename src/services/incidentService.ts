@@ -44,6 +44,24 @@ export function incidentSortKey(f: Pick<FootageFolder, 'date' | 'time'>): number
   return new Date(yyyy, mm - 1, dd, hh, mi).getTime();
 }
 
+/** Incident folder for an event raised by Live Detection. */
+export function liveIncident(
+  ev: { severity: string; message: string; dwell: number },
+  camera: { id: string; name: string },
+  now: Date = new Date(),
+): FootageFolder {
+  return {
+    id: `L-${now.getTime().toString(36).toUpperCase()}`,
+    date: formatDDMMYYYY(now),
+    day: DAY_NAMES[now.getDay()],
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    platform: camera.name,
+    remarks: `[Auto-logged by Live Detection · ${ev.severity.toUpperCase()}] ${ev.message} Time in zone: ${ev.dwell.toFixed(1)} s.`,
+    cameras: [camera.id],
+    saved: false,
+  };
+}
+
 export function loadIncidents(): FootageFolder[] {
   return storageService.getJSON<FootageFolder[] | null>(KEYS.INCIDENTS, null) ?? buildSeedIncidents();
 }

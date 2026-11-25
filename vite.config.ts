@@ -6,6 +6,8 @@ export default defineConfig(({ mode }) => ({
   // Relative base so the build works from any folder or static host
   base: './',
   plugins: [react()],
+  // onnxruntime-web loads its .wasm relative to its own module; pre-bundling breaks that in dev
+  optimizeDeps: { exclude: ['onnxruntime-web'] },
   server: { port: 3000, host: '0.0.0.0' },
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
   build:

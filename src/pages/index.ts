@@ -9,3 +9,4 @@ export { default as AccidentAnalysis } from './AccidentAnalysis';
 export { default as RawDataCatalog } from './RawDataCatalog';
 export { default as LoginHistory } from './LoginHistory';
 export { default as SavedArchive } from './SavedArchive';
+export { default as LiveDetection } from './LiveDetection';

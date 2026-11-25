@@ -36,9 +36,32 @@ pip install ultralytics
 yolo detect predict model=model/best.pt source=your_video.mp4
 ```
 
-[Add the zone script (red/yellow zone logic) to `model/` and a link to the training notebook or dataset.]
+Run it with the red/yellow zone rules (the same rules as the dashboard's **Live Detection** page), using a zone file exported from the Cameras page:
+
+```bash
+pip install ultralytics
+python model/zone_detect.py --source your_video.mp4 --zones zones_CAM-02.json --out annotated.mp4
+python model/zone_detect.py --source 0 --zones zones_CAM-02.json --show   # webcam
+```
+
+It prints each alert and writes them to `events.csv`. The browser copy of the model is `public/model/redontrack.onnx`, exported with `yolo export model=model/best.pt format=onnx imgsz=640 opset=17 simplify=True`.
+
+[Add a link to the training notebook or dataset.]
 
 The model is built on Ultralytics YOLO11, licensed AGPL-3.0.
+
+## Live Detection (new)
+
+The **Live AI** page runs the RedOnTrack model **inside the browser** (ONNX Runtime Web, WebAssembly). Frames never leave the device, like an edge box at the station would work.
+
+- **Any source:** the sample clips, an uploaded video, or a webcam / USB camera.
+- **Uses your zones:** the red and yellow zones drawn on the Cameras page are applied live. A person is placed by their feet (bottom-centre of the box).
+- **Risk levels by time in zone:** red zone = MEDIUM at once, HIGH once confirmed (0.5 s by default, filters one-frame glitches). Yellow strip = LOW, MEDIUM after lingering (3 s). Thresholds are adjustable with sliders.
+- **Person tracking:** each person keeps an ID between frames, so the dashboard knows how long *that* person has been in the zone.
+- **Train gate:** zones switch off only when a train is confident (score ≥ 0.8), covers the track zone (≥ 25 %), and stays for 1 s. This stops false "train" boxes on the platform strip from silencing alerts.
+- **Auto-logged incidents:** confirmed events are added to the Incident log (operators and admins), with a snapshot card and CSV export of all events.
+
+The same rules run on the edge in `model/zone_detect.py`, so the dashboard and the device agree. Logic and tests: `src/services/detectionService.ts`, `src/__tests__/detection.test.ts`.
 
 ## Features
 
@@ -51,6 +74,7 @@ The model is built on Ultralytics YOLO11, licensed AGPL-3.0.
 | **Incident analysis** | Weekly/monthly charts by day or 4-hour time slot. Click a bar to filter the incident list. |
 | **Incident log** | Edit investigation remarks, save incidents to the archive, open every camera angle for the incident, export a text report. |
 | **AI analysis** | One click produces anomaly detection, a risk score, 3–5 preventive measures and a summary. Uses Gemini when configured, otherwise a built-in rule-based analyser that works offline. |
+| **Live detection** | Runs the model in the browser on a clip, uploaded video or webcam with the camera's zones, dwell-time risk levels, a train gate and auto-logged incidents. See [Live Detection](#live-detection-new). |
 | **Footage catalog** | 7-day index of continuous recordings per camera, with playback. |
 | **Access log** | Admin-only record of every sign-in and sign-out, searchable and exportable to CSV. |
 
@@ -98,7 +122,7 @@ Each camera in `src/constants/index.ts` takes an optional `videoUrl`. Point it a
 
 ## Tech stack
 
-React 19 · TypeScript (strict) · Vite 6 · Tailwind CSS 3 · React Router 7 · Vitest · Gemini REST API
+React 19 · TypeScript (strict) · Vite 6 · Tailwind CSS 3 · React Router 7 · Vitest · Gemini REST API · ONNX Runtime Web · Ultralytics YOLO11 (Python edge script)
 
 ## Project structure
 
@@ -121,4 +145,5 @@ More detail: [Architecture](docs/ARCHITECTURE.md) · [User guide](docs/USER_GUID
 - **Auth is client-side.** Accounts, sessions and the access log live in the browser's localStorage. It demonstrates role-based access but is not a security boundary. Replace `src/services/authService.ts` with Firebase Auth, Supabase Auth or similar before real use.
 - **Data is local and sample-based.** Incidents and chart figures are sample data stored per browser.
 - **Analysis reads text, not video.** Both engines analyse the incident metadata and staff remarks. Sending video frames to a vision model is the next step.
-- **Feeds and alerts are simulated** unless you set `videoUrl`. The scenes, boxes and alerts are scripted to show how detection would look; no vision model runs on the video yet. Adding one (e.g. person/bag detection on real clips) is the main next step.
+- **Camera grid alerts follow recorded timings.** The Cameras page plays recorded model runs and uses their alert windows. Real detection runs on the **Live AI** page and in `model/zone_detect.py`.
+- **Browser inference is CPU-only.** Expect a few frames per second on a laptop; the edge script or a GPU is faster. The sample clips have the old overlay burned in, so raw footage gives cleaner detections.

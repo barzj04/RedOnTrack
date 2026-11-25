@@ -31,6 +31,7 @@ const Header: React.FC<HeaderProps> = ({ hideBranding = false }) => {
   const links = [
     { to: '/', label: 'Home' },
     { to: '/monitoring', label: 'Cameras' },
+    { to: '/live', label: 'Live AI' },
     { to: '/analysis', label: 'Incidents' },
     { to: '/archive', label: 'Archive' },
     { to: '/catalog', label: 'Footage' },
